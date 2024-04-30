@@ -1,6 +1,6 @@
 from config import db,bcrypt
 from sqlalchemy_serializer import SerializerMixin
-
+from sqlalchemy.orm import validates
 
 # from sqlalchemy_serializer import SerializerMixin
 class User(db.Model,SerializerMixin):
@@ -20,6 +20,7 @@ class User(db.Model,SerializerMixin):
                 "weather": self.location.weather
             }
         return{
+            "id": self.id,
             "username": self.username,
             "email": self.email,
             "location":location
@@ -104,3 +105,11 @@ class Location(db.Model, SerializerMixin):
             'date_created': self.date_created,
             'date_updated': self.date_updated
         }
+        
+    @validates('name')
+    def name(self,key,name):
+        existing_name=Location.query.filter_by(name=name).first()
+        if existing_name and existing_name.id!=self.id:
+            raise ValueError('Name already exists')
+        else:
+            return name
