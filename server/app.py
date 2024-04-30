@@ -2,7 +2,7 @@ from config import create_app,db
 from flask import request,jsonify,make_response
 from flask_restful import Api,Resource
 from models import Weather,Location,User
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity,unset_jwt_cookies
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity,unset_jwt_cookies #import the jwt extensions
 
 app=create_app()
 api=Api(app)
@@ -12,27 +12,39 @@ def hello_world():
 
 
 
-    
+ 
 class Login(Resource):
-    def get(self):
-        return {'access_token'}
+    
     def post(self):
         data = request.get_json()
         if 'username' not in data or 'password' not in data:
             return jsonify({'message': 'Username and password are required'}), 400
-        
+    
         username = data['username']
         password = data['password']
         user = User.query.filter(User.username == username).first()
         if not user or not user.check_password(password):
             return jsonify({'message': 'Invalid username or password'}), 401
+        #create an access token with jwt
+        access_token = create_access_token(identity=user.id)
         
-        access_token = create_access_token(identity=username)
-        return {'access_token': access_token}, 200
+        return {'access_token': access_token, 'id':user.id}, 200
 
 api.add_resource(Login, '/login')
 
+class UserProfile(Resource):
+    @jwt_required()
+    def get(self):
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        if user:
+            print(user.to_dict())
+            return user.to_dict()  # Convert user object to dictionary
+        else:
+            return {'message': 'User not found'}, 404  # Return a dictionary with an error message and 404 status code
 
+
+api.add_resource(UserProfile, '/user')
 class Logout(Resource):
     @jwt_required()  # Requires a valid access token
     def delete(self):
@@ -78,8 +90,29 @@ class Weathers(Resource):
 api.add_resource(Weathers, '/weather')    
 class Locations(Resource):
     def get(self):
-        locations=[location.to_dict() for location in Location.query.all()]
-        return jsonify(locations)
+        locations = Location.query.all()
+        if locations:
+            return jsonify([location.to_dict() for location in locations])
+        else:
+            return jsonify({'message': 'No locations found'})
+    @jwt_required()  # Requires a valid access token
+    def post(self):
+        data = request.get_json()
+        current_user_id = get_jwt_identity()  # Get the current user's ID from JWT token
+
+        new_location = Location(
+            name=data.get('name'),
+            activity=data.get('activity'),
+            user_id=current_user_id  # Associate the new location with the logged-in user
+        )
+
+        db.session.add(new_location) # Add the new location object to the session
+        db.session.commit()
+
+        return jsonify(new_location.to_dict()), 201
+
+        
+       
 api.add_resource(Locations, '/location')
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
