@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.home{
+  background-image: url('https://res.cloudinary.com/doifxgf1h/image/upload/v1714128855/weatherapi/weather1_fsmlql.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+}
