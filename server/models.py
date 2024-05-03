@@ -3,36 +3,6 @@ from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.orm import validates
 
 # from sqlalchemy_serializer import SerializerMixin
-class User(db.Model,SerializerMixin):
-    __tablename__ = 'users'
-    id=db.Column(db.Integer,primary_key=True)
-    username=db.Column(db.String())
-    email=db.Column(db.String())
-    _password=db.Column(db.String())
-    location=db.relationship('Location',back_populates="user")
-    def to_dict(self):
-        location={}
-        if self.location:
-            location={
-                'id': self.location.id,
-                'name': self.location.name,
-                'activity': self.location.activity,
-                "weather": self.location.weather
-            }
-        return{
-            "id": self.id,
-            "username": self.username,
-            "email": self.email,
-            "location":location
-        }
-    @property
-    def password(self):
-        return self._password
-    @password.setter
-    def password(self, plain_password_text):
-        self._password = bcrypt.generate_password_hash(plain_password_text).decode('utf-8')  
-    def check_password(self, password):
-        return bcrypt.check_password_hash(self._password, password)
 class Weather(db.Model, SerializerMixin):
     __tablename__ = 'weathers'
     id = db.Column(db.Integer, primary_key=True)
@@ -44,43 +14,34 @@ class Weather(db.Model, SerializerMixin):
     activity = db.Column(db.String)
     date_created = db.Column(db.DateTime, server_default=db.func.now())
     date_updated = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
-
-    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
     location = db.relationship('Location', back_populates='weather')
     
     def to_dict(self):
-        location_data={}
-        if self.location:
-            location_data={
-                'id': self.location.id,
-                'name': self.location.name,
-                'activity': self.location.activity,
-                
-            }
-            return{
-                'id': self.id,
-                'temperature': self.temperature,
-                'humidity': self.humidity,
-                'windspeed': self.windspeed,
-                'rain_level': self.rain_level,
-                'state': self.state,
-                'location': location_data
-            }
-            
+        return {
+            'id': self.id,
+            'temperature': self.temperature,
+            'humidity': self.humidity,
+            'windspeed': self.windspeed,
+            'rain_level': self.rain_level,
+            'state': self.state,
+            'location': [loc.to_dict() for loc in self.location]
+        }
+
 
 class Location(db.Model, SerializerMixin):
     __tablename__ = 'locations'
+    serialize_only = ('name', 'activity', 'weather', 'users', 'date_created', 'date_updated')
     id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String())
+    name = db.Column(db.String(20))
     activity = db.Column(db.String())
     date_created = db.Column(db.DateTime(), server_default=db.func.now())
     date_updated = db.Column(db.DateTime(), onupdate=db.func.now())
+    weather_id = db.Column(db.Integer, db.ForeignKey('weathers.id'))
     weather = db.relationship('Weather', back_populates='location', uselist=False)
-    user_id=db.Column(db.Integer(), db.ForeignKey('users.id'))
-    user=db.relationship('User', back_populates='location')
+    users = db.relationship('User', back_populates='location')
+    
     def to_dict(self):
-        weather_data = {}
-        users={}
+        weather_data = None
         if self.weather:
             weather_data = {
                 'state': self.weather.state,
@@ -88,28 +49,52 @@ class Location(db.Model, SerializerMixin):
                 'humidity': self.weather.humidity,
                 'windspeed': self.weather.windspeed,
                 'rain_level': self.weather.rain_level,
-                'activity': self.weather.activity,
-               
             }
-        elif self.user:
-            users={
-                'username':self.user.username,
-                'email':self.user.email
-            }
+        
         return {
             'id': self.id,
             'name': self.name,
             'activity': self.activity,
+            'weather_id': self.weather_id,
             'weather': weather_data,
-            'users': users,
+            'users': [{'id': user.id, 'username': user.username, 'email': user.email} for user in self.users],
             'date_created': self.date_created,
             'date_updated': self.date_updated
         }
-        
-    @validates('name')
-    def name(self,key,name):
-        existing_name=Location.query.filter_by(name=name).first()
-        if existing_name and existing_name.id!=self.id:
+
+
+class User(db.Model, SerializerMixin):
+    __tablename__ = 'users'
+    serialize_only = ('username', 'email', 'location')
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String())
+    email = db.Column(db.String())
+    _password = db.Column(db.String())
+    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
+    location = db.relationship('Location', back_populates="users")
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "location": self.location.to_dict() if self.location else None
+        }
+    
+    @property
+    def password(self):
+        return self._password
+    
+    @password.setter
+    def password(self, plain_password_text):
+        self._password = bcrypt.generate_password_hash(plain_password_text).decode('utf-8')
+    
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self._password, password)
+    
+    @validates('username')
+    def validate_name(self, key, username):
+        existing_name = User.query.filter_by(username=username).first()
+        if existing_name and existing_name.id != self.id:
             raise ValueError('Name already exists')
-        else:
-            return name
+        return username
