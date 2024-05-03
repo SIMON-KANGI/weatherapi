@@ -66,10 +66,19 @@ class Users(Resource):
     
     def post(self):
         data=request.get_json()
+        username=data.get('username')
+        email=data.get('email')
+        password=data.get('password')
+        location_name=data.get('location')
+        
+        location=Location.query.filter_by(name=location_name).first()
+        if not location:
+            return jsonify({'message': 'Location not found'}), 404
         new_user=User(
-            username=data.get('username'),
-            email=data.get('email'),
-            password=data.get('password')
+            username=username,
+            email=email,
+            password=password,
+            location_id=location.id
         )  
         db.session.add(new_user)
         db.session.commit()
@@ -86,6 +95,52 @@ class Weathers(Resource):
             return jsonify([weather.to_dict() for weather in weathers])
         else:
             return jsonify({'message': 'No weathers found'})
+    def post(self):
+        data=request.get_json()
+        temperature=data['temperature']
+        humidity=data['humidity']
+        windspeed=data['windspeed']
+        rain_level=data['rain_level']
+        activity=data['activity']
+        state=data['state']
+        
+        
+        new_weather=Weather(
+            temperature=temperature,
+            humidity=humidity,
+            windspeed=windspeed,
+            rain_level=rain_level,
+            activity=activity,
+            state=state,
+           
+        )
+        db.session.add(new_weather)
+        db.session.commit()
+        
+    def patch(self, id):
+    # Find the weather entry to update
+        weather_entry = Weather.query.filter(Weather.id == id).first()
+
+        if not weather_entry:
+            return jsonify({'message': 'Weather entry not found'}), 404
+
+        data = request.get_json()
+        # Update fields if provided
+        if 'temperature' in data:
+            weather_entry.temperature = data['temperature']
+        if 'humidity' in data:
+            weather_entry.humidity = data['humidity']
+        if 'windspeed' in data:
+            weather_entry.windspeed = data['windspeed']
+        if 'rain_level' in data:
+            weather_entry.rain_level = data['rain_level']
+        if 'activity' in data:
+            weather_entry.activity = data['activity']
+
+        # Commit the changes
+        db.session.commit()
+
+        return jsonify(weather_entry.to_dict()), 200
 
 api.add_resource(Weathers, '/weather')    
 class Locations(Resource):
@@ -95,15 +150,19 @@ class Locations(Resource):
             return jsonify([location.to_dict() for location in locations])
         else:
             return jsonify({'message': 'No locations found'})
-    @jwt_required()  # Requires a valid access token
+      # Requires a valid access token
     def post(self):
         data = request.get_json()
-        current_user_id = get_jwt_identity()  # Get the current user's ID from JWT token
-
+       # current_user_id = get_jwt_identity()  # Get the current user's ID from JWT token
+        name=data['name']
+        activity=data['activity']
+    
+        weather=Weather.query.filter_by(activity=activity).first()
         new_location = Location(
-            name=data.get('name'),
-            activity=data.get('activity'),
-            user_id=current_user_id  # Associate the new location with the logged-in user
+            name=name,
+            activity=activity,
+            weather_id=weather.id
+            # user_id=current_user_id  # Associate the new location with the logged-in user
         )
 
         db.session.add(new_location) # Add the new location object to the session
