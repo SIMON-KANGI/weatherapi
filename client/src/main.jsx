@@ -6,10 +6,12 @@ import { BrowserRouter,Routes,Route } from 'react-router-dom'
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify'
 import { AuthProvider } from './context/AuthProvider'
+import { store } from './app/store.jsx'
+import { Provider } from 'react-redux'
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-
-  <BrowserRouter>
+<Provider store={store}>
+ <BrowserRouter>
     <ToastContainer />
   <AuthProvider>
     <Routes>
@@ -19,6 +21,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </AuthProvider>
     
   </BrowserRouter>
+
+</Provider>
+ 
     
   </React.StrictMode>,
 )
