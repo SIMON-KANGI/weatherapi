@@ -1,5 +1,6 @@
 import React from 'react'
 import { useLocation } from 'react-router-dom'
+import NavBar from '../components/NavBar'
 function Residents() {
     const currentUser=useLocation()
     const location=currentUser.state?.location
@@ -9,6 +10,7 @@ function Residents() {
     }
   return (
     <div>
+    
  <table className='border-2 border-slate-950 w-1/2 m-3 text-center'>
     <thead className='border-2 bg-slate-400 border-neutral-800'>
       <tr>
