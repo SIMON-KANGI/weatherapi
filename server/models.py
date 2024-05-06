@@ -12,6 +12,7 @@ class Weather(db.Model, SerializerMixin):
     windspeed = db.Column(db.Float)
     rain_level = db.Column(db.Float)
     activity = db.Column(db.String)
+    location=db.Column(db.String)
     date_created = db.Column(db.DateTime, server_default=db.func.now())
     date_updated = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
     location = db.relationship('Location', back_populates='weather')
