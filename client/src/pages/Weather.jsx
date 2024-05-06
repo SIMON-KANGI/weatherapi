@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { instance } from '../api/axios';
+import { instance } from '../app/api/axios';
 import { useNavigate } from 'react-router-dom';
+import NavBar from '../components/NavBar';
 
 function Weather() {
     const [weather, setWeather] = useState(null);
@@ -54,7 +55,11 @@ function Weather() {
     };
 
     return (
-        <div className='text-center'>
+        <>
+
+    
+            <div className='text-center'>
+        
             <table className='border-2 border-slate-950 w-1/2 m-3 text-center'>
                 <thead className='border-2 bg-slate-400 border-neutral-800'>
                     <tr>
@@ -85,6 +90,8 @@ function Weather() {
                 </tbody>
             </table>
         </div>
+        </>
+        
     );
 }
 
