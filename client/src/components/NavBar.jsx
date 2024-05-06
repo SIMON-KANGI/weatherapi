@@ -1,7 +1,13 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import Logout from '../pages/Logout'
-function NavBar({user, onLogOut}) {
+import useAuth from "../Hooks/useAuth";
+import { useSelector } from "react-redux";
+import { selectCurrentUser,selectCurrentLocation } from "../features/auth/authSlice";
+function NavBar() {
+  // const { auth} = useAuth();
+  const user = useSelector(selectCurrentUser);
+  const location = useSelector(selectCurrentLocation);
   return (
     <div className='w-full h-fit shadow-md bg-black text-blue-500'>
       <nav className="p-4"> 
@@ -27,9 +33,14 @@ function NavBar({user, onLogOut}) {
             <Link to='/addweather'>Create Weather</Link>
         
             </li>
-            <li><h1 className='text-xl text-red-600'>{user?.username}</h1></li>
+            <li>
+            <h1 className='text-xl text-red-600 pr-3'> Welcome {user}</h1>
+            </li>
+            <li>
+            <h1 className='text-xl text-green-600'>My Location {location}</h1>
+            </li>
             <div>
-           <Logout onLogOut={onLogOut}/>
+           <Logout/>
         
             </div>
 
