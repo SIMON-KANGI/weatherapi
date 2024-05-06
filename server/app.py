@@ -1,5 +1,5 @@
 from config import create_app,db
-from flask import request,jsonify,make_response
+from flask import request,jsonify,make_response,flash,session
 from flask_restful import Api,Resource
 from models import Weather,Location,User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity,unset_jwt_cookies #import the jwt extensions
@@ -24,12 +24,17 @@ class Login(Resource):
         password = data['password']
         user = User.query.filter(User.username == username).first()
         if not user or not user.check_password(password):
+            flash('Invalid password or username', category='danger')
             return jsonify({'message': 'Invalid username or password'}), 401
-        #create an access token with jwt
+        
+        session['user_id'] = user.id
         access_token = create_access_token(identity=user.id)
         
-        return {'access_token': access_token, 'id':user.id}, 200
-
+        response = make_response(jsonify({'access_token': access_token, 'id':user.id}), 200)
+        response.set_cookie('access_token', access_token, httponly=True, secure=True)
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
 api.add_resource(Login, '/login')
 
 class UserProfile(Resource):
@@ -45,20 +50,22 @@ class UserProfile(Resource):
 
 
 api.add_resource(UserProfile, '/user')
+
+
 class Logout(Resource):
     @jwt_required()  # Requires a valid access token
     def delete(self):
         current_user = get_jwt_identity()
         
-        # Create a response object
-        response = make_response({'message': f'Logged out user {current_user}'}, 200)
+        # Clear the session data
+        session.pop('user_id', None)
         
-        # Invalidate the JWT token by clearing the cookies
+        # Clear the JWT token cookie
+        response = make_response(jsonify({'message': f'Logged out user {current_user}'}), 200)
         unset_jwt_cookies(response)
         
         return response
 api.add_resource(Logout, '/logout')
-
 class Users(Resource):
     def get(self):
         users=[user.to_dict() for user in User.query.all()]
