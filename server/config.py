@@ -4,15 +4,18 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
-
+import secrets
 db = SQLAlchemy()
 migrate=Migrate()
 bcrypt=Bcrypt()
+# secret_key=secrets.token_urlsafe(32)
+# print(secret_key)
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
-    app.config['JWT_SECRET_KEY']='36f410a833734793e99e130cf20a25af2b3de1175d02b8450b615c4660d57f02'#secret key
+    CORS(app,supports_credentials=True)
+    app.config['SECRET_KEY']='Ajt5QZmdz8STQRTSh_F4UOZ0RhRHZaouVlHXHEcyiTc'#secret key
+    app.config['JWT_SECRET_KEY']='1QB3nZs72ocmtA8yJEjWFIFnbQSbGRPKqe3Pa3i78ik'#secret key
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 600
     app.config["SQLALCHEMY_DATABASE_URI"]='sqlite:///weather.db'
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
