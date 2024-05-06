@@ -12,8 +12,15 @@ import CreateWeather from './pages/CreateWeather';
 import WeatherDetails from './pages/WeatherDetails';
 import Residents from './pages/Residents';
 function App() {
-  const [user, setUser] = useState(null);
-
+  const [isLoggedIn, setLoggedIn] = useState(false);
+  useEffect(()=>{
+    const token=localStorage.getItem('access_token');
+    if(token){
+      setLoggedIn(true);
+    }else{
+      setLoggedIn(false);
+    }
+  },[])
   
   return (
     <main className='app'>
@@ -21,6 +28,7 @@ function App() {
       <Routes>
         <Route path='/' element={<Layout/>}>
         {/* public */}
+        
            <Route path='register' element={<Register/>} />
           <Route path='login' element={<Login />} />
           <Route path='addlocation' element={<CreateLocation/>} />
@@ -40,3 +48,4 @@ function App() {
 }
 
 export default App;
+
