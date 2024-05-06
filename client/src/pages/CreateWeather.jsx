@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { createAxiosInstance } from '../api/axios';// Import the function separately
-
+// Import the function separately
+import NavBar from '../components/NavBar';
+import { createAxiosInstance } from '../app/api/axios';
 const CreateWeather = () => {
     const [values, setValues] = useState({
         temperature: '',
@@ -47,7 +48,9 @@ const CreateWeather = () => {
     };
 
     return (
-        <div className='flex items-center justify-center m-3'>
+        <>
+        
+            <div className='flex items-center justify-center m-3'>
             <form className='bg-blue-900 p-4' onSubmit={handleSubmit}>
                
                 <div className="w-full text-xl  p-3">
@@ -100,7 +103,9 @@ const CreateWeather = () => {
 
                 <button type="submit" className="bg-white text-black py-3 px-8">Submit</button>
             </form>
-        </div>
+        </div>  
+        </>
+      
     );
 };
 
