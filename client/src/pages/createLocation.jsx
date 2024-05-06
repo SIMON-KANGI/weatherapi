@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { createAxiosInstance } from '../api/axios';// Import the function separately
+import { createAxiosInstance } from '../app/api/axios';// Import the function separately
+import NavBar from '../components/NavBar';
 
 const CreateLocation = () => {
     const [values, setValues] = useState({
@@ -39,7 +40,9 @@ const CreateLocation = () => {
     };
 
     return (
-        <div className='flex items-center justify-center m-3'>
+        <>
+        
+            <div className='flex items-center justify-center m-3'>
             <form className='bg-blue-900 p-4' onSubmit={handleSubmit}>
                 <div className="w-full text-xl p-3">
                     <label className='text-white m-3'>Name </label>
@@ -72,7 +75,9 @@ const CreateLocation = () => {
                 </div>
                 <button type="submit" className="bg-white text-black py-3 px-8">Submit</button>
             </form>
-        </div>
+        </div>   
+        </>
+     
     );
 };
 
